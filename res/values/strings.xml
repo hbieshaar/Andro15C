@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Andro15C</string>
+    <string name="app_desc">Scientific calculator for Android</string>
+    <string name="app_about">Andro15C version @@\n&#169; 2014 Elvis Pfützenreuter\nhttp://epx.com.br</string>
+</resources>

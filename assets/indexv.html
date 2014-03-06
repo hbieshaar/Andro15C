@@ -1,0 +1,151 @@
+<html>
+<head>
+<title>Andro15C</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=984" />
+<link rel=STYLESHEET href="hp15c.css" type="text/css">
+<SCRIPT SRC="hp15c-min-android.js" TYPE="text/javascript"></script>
+<SCRIPT SRC="andro15cv.js" TYPE="text/javascript"></script>
+</head>
+<body>
+
+<div id="pointer_div" style="position: relative; width: 984px; height: 1611px; margin: auto;">
+
+<img src="hp15c_vertical.png" style="position: absolute; left: 0px; top:0px;" id="cross" alt="">
+<div style="z-index:1; position:absolute; left: 73px; top: 86x; font-weight: bold; font-size: 107px; font-family: sans-serif;">
+<span id="display"></span>
+</div>
+<div style="z-index:1; position:absolute; left: 93px; top: 217px; font-size: 38px; font-family: sans-serif;">
+<span id="modifier">STO</span>
+</div>
+<div style="z-index:1; position:absolute; left: 533px; top: 217px; font-size: 38px; font-family: sans-serif;">
+<span id="user">USER</span>
+</div>
+<div style="z-index:1; position:absolute; left: 738px; top: 217px; font-size: 38px; font-family: sans-serif;">
+<span id="trigo">GRAD</span>
+</div>
+<div style="z-index:1; position:absolute; left: 905px; top: 217px; font-size: 38px; font-family: sans-serif;">
+<span id="complex">C</span>
+</div>
+<div style="z-index:1; position:absolute; left: 300px; top: 217px; font-size: 38px; font-family: sans-serif;">
+<span id="pgrm">PGRM&nbsp;&nbsp;C</span>
+</div>
+
+<img id="lcd0a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+<img id="lcd0b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+<img id="lcd0c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+<img id="lcd0d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+<img id="lcd0e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+<img id="lcd0f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+<img id="lcd0g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+<img id="lcd0p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+<img id="lcd0t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 53px;">
+
+<img id="lcd1a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+<img id="lcd1b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+<img id="lcd1c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+<img id="lcd1d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+<img id="lcd1e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+<img id="lcd1f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+<img id="lcd1g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+<img id="lcd1p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+<img id="lcd1t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 133px;">
+
+<img id="lcd2a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+<img id="lcd2b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+<img id="lcd2c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+<img id="lcd2d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+<img id="lcd2e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+<img id="lcd2f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+<img id="lcd2g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+<img id="lcd2p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+<img id="lcd2t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 213px;">
+
+<img id="lcd3a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+<img id="lcd3b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+<img id="lcd3c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+<img id="lcd3d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+<img id="lcd3e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+<img id="lcd3f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+<img id="lcd3g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+<img id="lcd3p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+<img id="lcd3t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 293px;">
+
+<img id="lcd4a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+<img id="lcd4b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+<img id="lcd4c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+<img id="lcd4d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+<img id="lcd4e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+<img id="lcd4f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+<img id="lcd4g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+<img id="lcd4p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+<img id="lcd4t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 373px;">
+
+<img id="lcd5a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+<img id="lcd5b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+<img id="lcd5c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+<img id="lcd5d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+<img id="lcd5e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+<img id="lcd5f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+<img id="lcd5g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+<img id="lcd5p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+<img id="lcd5t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 453px;">
+
+<img id="lcd6a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+<img id="lcd6b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+<img id="lcd6c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+<img id="lcd6d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+<img id="lcd6e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+<img id="lcd6f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+<img id="lcd6g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+<img id="lcd6p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+<img id="lcd6t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 533px;">
+
+<img id="lcd7a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+<img id="lcd7b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+<img id="lcd7c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+<img id="lcd7d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+<img id="lcd7e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+<img id="lcd7f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+<img id="lcd7g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+<img id="lcd7p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+<img id="lcd7t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 613px;">
+
+<img id="lcd8a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+<img id="lcd8b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+<img id="lcd8c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+<img id="lcd8d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+<img id="lcd8e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+<img id="lcd8f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+<img id="lcd8g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+<img id="lcd8p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+<img id="lcd8t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 693px;">
+
+<img id="lcd9a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+<img id="lcd9b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+<img id="lcd9c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+<img id="lcd9d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+<img id="lcd9e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+<img id="lcd9f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+<img id="lcd9g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+<img id="lcd9p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+<img id="lcd9t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 773px;">
+
+<img id="lcd10a" src="lcd.11v/11_lcda.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+<img id="lcd10b" src="lcd.11v/11_lcdb.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+<img id="lcd10c" src="lcd.11v/11_lcdc.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+<img id="lcd10d" src="lcd.11v/11_lcdd.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+<img id="lcd10e" src="lcd.11v/11_lcde.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+<img id="lcd10f" src="lcd.11v/11_lcdf.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+<img id="lcd10g" src="lcd.11v/11_lcdg.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+<img id="lcd10p" src="lcd.11v/11_lcdp.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+<img id="lcd10t" src="lcd.11v/11_lcdt.png" alt="" style="z-index:1; position:absolute; top: 103px; visibility: hidden; left: 853px;">
+
+</div>
+
+<script type="text/javascript" defer>
+Init_hp12c();
+</script>
+
+</body>
+</html>

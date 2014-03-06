@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<manifest android:versionCode="100" android:versionName="1.00" package="br.com.epx.andro15c" xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
+    <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="10"/>
+    <!-- Problem with higher SDK levels: menu button disappears! -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- These are needed for the Memory Save/Load feature. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <application android:description="@string/app_desc" android:icon="@drawable/icon"
+        android:label="@string/app_name" android:theme="@android:style/Theme.NoTitleBar"
+        android:allowBackup="true">
+        <activity android:configChanges="keyboardHidden|orientation" android:label="@string/app_name" android:name=".Andro15CActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+    </application>
+</manifest>
