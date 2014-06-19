@@ -6,6 +6,7 @@ var H = {};
 H.type = "15c";
 H.touch_display = false;
 H.vertical_layout = false;
+H.embedded = false;
 
 H.disp_theo_width = 700.0;
 H.disp_theo_height = 438.0;
@@ -211,19 +212,32 @@ H.date_to_show = function (dd, dmy)
 	return H.date_gen(dd, dmy).toFixed(6) + "  " + dow;
 };
 
+H.is_12c = function ()
+{
+	return H.type === "12c" ||
+		H.type === "12c-platinum" ||
+		H.type === "12c-bs";
+};
+
 /* Some browsers don't have console.log */
 window.console = window.console || {};
 window.console.log = window.console.log || function (msg) {};
+if (typeof console === "undefined") {
+	console = window.console;
+}
+console.log = console.log || window.console.log;
 
-H.type_cookie = 'hp12c';
+H.type_cookie = "hp12c";
 if (H.type === "12c-platinum") {
-	H.type_cookie = 'hp12cpl';
+	H.type_cookie = "hp12cpl";
+} else if (H.type === "12c-bs") {
+	H.type_cookie = "hp12cbs";
 } else if (H.type === "11c") {
-	H.type_cookie = 'hp11c';
+	H.type_cookie = "hp11c";
 } else if (H.type === "15c") {
-	H.type_cookie = 'hp15c';
+	H.type_cookie = "hp15c";
 } else if (H.type === "16c") {
-	H.type_cookie = 'hp16c';
+	H.type_cookie = "hp16c";
 }
 
 H.INTERACTIVE = 0;
@@ -324,6 +338,8 @@ H.INSTRUCTION_SIZE = 2; // size of a non-addr opcode
 H.INSTRUCTION_MAX = 100;
 H.INSTRUCTION_TOKENS = 3; // e.g. 43.33.00 has 3 tokens
 
+// 12c-BS has the same defaults as 12C vanilla
+
 if (H.type === "12c-platinum") {
 	H.ram_MAX = 400;
 	H.ram_ADDR_SIZE = 3;
@@ -347,6 +363,8 @@ if (H.type === "12c-platinum") {
 }
 
 H.MEM_MAX = 20;
+
+// 12C-BS the same defaults as vanilla
 
 if (H.type == "12c-platinum") {
 	H.MEM_MAX = 30;
@@ -522,7 +540,7 @@ Hp12c_debug.prototype.show_memory2 = function ()
 	if (title) {
 		title.innerHTML = H.type + " memory at " + now;
 
-		if (H.type === "12c" || H.type === "12c-platinum") {
+		if (H.is_12c()) {
 			for (e = 0; e < H.machine.finmemory.length; ++e) {
 				windoc.getElementById("finmemory" + e).innerHTML =
 					self.format_result({r: H.machine.finmemory[e]});
@@ -537,7 +555,7 @@ Hp12c_debug.prototype.show_memory2 = function ()
 			elem.innerHTML =
 				self.format_result(H.machine.sto_tuple(e));
 		}
-		if (H.type === "12c" || H.type === "12c-platinum") {
+		if (H.is_12c()) {
 			for (e = 0; e < H.machine.njmemory.length; ++e) {
 				windoc.getElementById("njmemory" + e).innerHTML =
 					self.format_result({r: H.machine.njmemory[e]});
@@ -753,48 +771,62 @@ function Hp12c_display()
 	this.clear();
 }
 
-Hp12c_display.prototype.private_show_digit = function (dgt, pos, merge)
+Hp12c_display.prototype.setInnerHTML = function (name, txt)
 {
-	if (pos >= this.lcd.length) {
-		window.console.log("Too many characters for display");
-		return;
-	}
-	if (! this.lcdmap[dgt]) {
-		dgt = ' ';
-	}
-	var map = this.lcdmap[dgt];
-	var element = this.lcd[pos];
-	var e; 
-	var f = 1;
-	for (e = 1; e < element.length; ++e) {
-		element[e].style.visibility = (map & f) ? "visible" : 
-			((merge && element[e].style.visibility == "visible") ? "visible" :"hidden");
-		f <<= 1;
+	if (H.embedded) {
+		this.display.setInnerHTML(name, txt);
+	} else {
+		var tgt = this[name];
+		if (tgt) {
+			tgt.innerHTML = txt;
+		}
 	}
 };
 
 Hp12c_display.prototype.private_lcd_display = function (txt) 
 {
 	var f = -1;
+	var buffer = [];
+
 	for (var e = 0; e < txt.length && f < this.lcd.length; ++e) {
-		var dgt = txt.charAt(e);
+		var merge = false;
+		var val = txt.charAt(e);
 		++f;
-		if (dgt == '.' || dgt == ',') {
+		if ((val == '.' || val == ',') && f > 0) {
 			// merge decimal point/thousand separator
 			--f;
-			this.private_show_digit(dgt, f, 1);
-		} else {
-			this.private_show_digit(dgt, f, 0);
+			merge = true;
 		}
+		if (! this.lcdmap[val]) {
+			val = ' ';
+		}
+		var map = this.lcdmap[val];
+		buffer[f] = map | (merge ? buffer[f] : 0);
 	}
 	for (++f; f < this.lcd.length; ++f) {
-		this.private_show_digit(' ', f, 0);
+		buffer[f] = 0;
+	}
+
+	if (H.embedded) {
+		this.display.showDisplay(buffer);
+		return;
+	}
+
+	for (f = 0; f < buffer.length; ++f) {
+		map = buffer[f];
+		for (var segm = 1; segm < 10; ++segm) {
+			var bit = 1 << (segm - 1);
+			var visibility = (map & bit) ? "visible" : "hidden";
+			if (this.lcd[f][segm].style.visibility !== visibility) {
+				this.lcd[f][segm].style.visibility = visibility;
+			}
+		}
 	}
 };
 
 Hp12c_display.prototype.show = function (txt)
 {
-	// printf("display show: " + txt);
+	// console.log("display show: " + txt);
 	this.cancel_overflow_blink();
 	this.contents = txt;
 	this.private_lcd_display(txt);
@@ -840,10 +872,7 @@ Hp12c_display.prototype.start_overflow_blink = function ()
 Hp12c_display.prototype.show_alt = function (txt)
 {
 	this.contents_alt = txt;
-
-	if (this.altdisplay) {
-		this.altdisplay.innerHTML = txt;
-	}
+	this.setInnerHTML("altdisplay", txt);
 };
 
 Hp12c_display.prototype.html_wrap = function (txt)
@@ -865,32 +894,22 @@ Hp12c_display.prototype.html_wrap = function (txt)
 
 Hp12c_display.prototype.show_wordstatus = function (txt)
 {
-	if (this.wordstatus) {
-		this.wordstatus.innerHTML = txt;
-	}
+	this.setInnerHTML("wordstatus", txt);
 };
 
 Hp12c_display.prototype.show_parentheses = function (txt)
 {
-	if (this.parentheses) {
-		this.parentheses.innerHTML = txt;
-	}
+	this.setInnerHTML("parentheses", txt);
 };
 
 Hp12c_display.prototype.show_undo = function (enabled)
 {
-	if (this.undo) {
-		this.undo.innerHTML = enabled ? "u" : "";
-	}
+	this.setInnerHTML("undo", enabled ? "u" : "");
 };
 
 Hp12c_display.prototype.clear = function ()
 {
-	for (var e = 0; e < this.lcd.length; ++e) {
-		for (var f = 1; f < this.lcd[e].length; ++f) {
-			this.lcd[e][f].style.visibility = "hidden";
-		}
-	}
+	this.private_lcd_display("");
 	this.show_alt("");
 	this.show_wordstatus("");
 };
@@ -1022,7 +1041,7 @@ Hp12c_display.prototype.format_result = function (n)
 		} else {
 			res = res + " " + H.zeropad(scale.toFixed(0), 2);
 		}
-		// window.console.log(" " + n + " " + mantissa + " " + scale + " d " + degenerate + " " + res);
+		// console.log(" " + n + " " + mantissa + " " + scale + " d " + degenerate + " " + res);
 
 		return res;
 	}
@@ -1200,10 +1219,14 @@ Hp12c_display.prototype.displayNumber_now_integer = function (x)
 
 Hp12c_display.prototype.displayMatrix = function (n, r, c)
 {
+	var self = this;
+
+	self.cancel_blinked();
+
 	var s = " " + (10 + n - 20).toString(16).toUpperCase() +
 		" " + r + ", " + c;
-	this.show(s);
-	this.show_alt("");
+	self.show(s);
+	self.show_alt("");
 };
 
 Hp12c_display.prototype.displayNumber_now = function (x)
@@ -1230,17 +1253,27 @@ Hp12c_display.prototype.displayNumber_now = function (x)
 	this.show_alt("");
 };
 
-Hp12c_display.prototype.displayNumber = function (x)
+Hp12c_display.prototype.cancel_blinked = function ()
 {
 	var self = this;
 
-	H.machine.cli("display");
-	self.show("");
 	if (self.blink_handle !== null) {
 		H.machine.sti("display");
 		H.cancel_delay(self.blink_handle);
 		self.blink_handle = null;
 	}
+};
+
+
+Hp12c_display.prototype.start_blinked = function (x)
+{
+	var self = this;
+
+	H.machine.cli("display");
+	self.show("");
+
+	self.cancel_blinked(); // innocuous if no blink in progress
+
 	self.blink_handle = H.delay(function () {
 		self.blink_handle = null;
 		H.machine.sti("display");
@@ -1248,13 +1281,27 @@ Hp12c_display.prototype.displayNumber = function (x)
 	}, self.blink_delay);
 };
 
+Hp12c_display.prototype.displayNumber = function (x)
+{
+	var self = this;
+
+	self.start_blinked(x);
+};
+
 Hp12c_display.prototype.displayTypedNumber_integer = function (val, xmode, digits)
 {
+	var self = this;
+
+	self.cancel_blinked();
 	this.p_display_integer(val, xmode, digits);
 };
 
 Hp12c_display.prototype.displayTypedNumber = function (ms, m, dec, exp, exps, xmode)
 {
+	var self = this;
+
+	self.cancel_blinked();
+
 	var s = "";
 	var co = H.machine.comma;
 
@@ -1310,7 +1357,7 @@ Hp12c_display.prototype.modifier_table = function ()
 	a[H.GTO] = "GTO";
 	a[H.GTO_MOVE] = "GTO★";
 
-	if (H.type === "12c" || H.type === "12c-platinum") {
+	if (H.is_12c()) {
 		a[H.RCL_GG] = "RCL g";
 	}
 
@@ -1409,9 +1456,7 @@ Hp12c_display.prototype.show_modifier = function (m)
 		txt = "";
 	}
 
-	if (this.dmodifier) {
-		this.dmodifier.innerHTML = txt;
-	}
+	this.setInnerHTML("dmodifier", txt);
 };
 
 Hp12c_display.prototype.show_begin = function (is_begin)
@@ -1421,9 +1466,7 @@ Hp12c_display.prototype.show_begin = function (is_begin)
 		txt = "BEGIN";
 	}
 
-	if (this.dbegin) {
-		this.dbegin.innerHTML = txt;
-	}
+	this.setInnerHTML("dbegin", txt);
 };
 
 Hp12c_display.prototype.show_carry = function (is_carry)
@@ -1433,8 +1476,8 @@ Hp12c_display.prototype.show_carry = function (is_carry)
 		txt = "C";
 	}
 
-	if (H.type === "16c" && this.carry) {
-		this.carry.innerHTML = txt;
+	if (H.type === "16c") {
+		this.setInnerHTML("carry", txt);
 	}
 };
 
@@ -1445,8 +1488,8 @@ Hp12c_display.prototype.show_overflow = function (is_overflow)
 		txt = "G";
 	}
 
-	if (H.type === "16c" && this.overflow) {
-		this.overflow.innerHTML = txt;
+	if (H.type === "16c") {
+		this.setInnerHTML("overflow", txt);
 	}
 };
 
@@ -1457,8 +1500,8 @@ Hp12c_display.prototype.show_complex = function (is_complex)
 		txt = "C";
 	}
 
-	if (H.type === "15c" && this.complex) {
-		this.complex.innerHTML = txt;
+	if (H.type === "15c") {
+		this.setInnerHTML("complex", txt);
 	}
 };
 
@@ -1491,16 +1534,13 @@ Hp12c_display.prototype.show_dmyc = function (dmy, compoundf)
 	if (compoundf) {
 		txt += "&nbsp;&nbsp;C";
 	}
-	if (this.ddmyc) {
-		this.ddmyc.innerHTML = txt;
-	}
+
+	this.setInnerHTML("ddmyc", txt);
 };
 
 Hp12c_display.prototype.show_pse = function ()
 {
-	if (this.dmodifier) {
-		this.dmodifier.innerHTML = "PAUSE";
-	}
+	this.setInnerHTML("dmodifier", "PAUSE");
 };
 
 Hp12c_display.prototype.show_pgrm = function (pgrm, run, pc)
@@ -1511,16 +1551,15 @@ Hp12c_display.prototype.show_pgrm = function (pgrm, run, pc)
 	} else if (run) {
 		txt = "RUN " + H.zeropad(pc.toFixed(0), 2);
 	}
-	if (this.pgrm) {
-		this.pgrm.innerHTML = txt;
-	}
+
+	this.setInnerHTML("pgrm", txt);
 };
 
 Hp12c_display.prototype.show_algmode = function (algmode)
 {
-	if (this.rpnalg && H.type === "12c-platinum") {
+	if (H.type === "12c-platinum") {
 		var txt = ["RPN", "ALG"][algmode];
-		this.rpnalg.innerHTML = txt;
+		this.setInnerHTML("rpnalg", txt);
 	}
 };
 
@@ -1528,9 +1567,7 @@ Hp12c_display.prototype.show_trigo = function (trigo)
 {
 	if (H.type === "11c" || H.type === "15c") {
 		var txt = ["", "RAD", "GRAD"][trigo];
-		if (this.trigo) {
-			this.trigo.innerHTML = txt;
-		}
+		this.setInnerHTML("trigo", txt);
 	}
 };
 
@@ -1538,9 +1575,7 @@ Hp12c_display.prototype.show_user = function (user)
 {
 	if (H.type === "11c" || H.type === "15c") {
 		var txt = ["", "USER"][user];
-		if (this.user) {
-			this.user.innerHTML = txt;
-		}
+		this.setInnerHTML("user", txt);
 	}
 };
 /* HP-12C emulator 
@@ -1646,17 +1681,13 @@ function Hp12c_keyboard()
 
 	// recalculate keyboard coordinates
 	// based on original ones for 700x438 image
-	self.kx = parseInt(self.pointer_div.style.width, 10) / H.disp_theo_width;
-	self.ky = parseInt(self.pointer_div.style.height, 10) / H.disp_theo_height;
-
-	self.xoff = H.disp_key_offset_x * self.kx;
-	self.yoff = H.disp_key_offset_y * self.ky;
-
-	self.xl = H.disp_key_width * self.kx;
-	self.yl = H.disp_key_height * self.ky;
-
-	self.xd = H.disp_key_dist_x * self.kx;
-	self.yd = H.disp_key_dist_y * self.ky;
+	if (H.embedded) {
+		self.kx = 1;
+		self.ky = 1;
+	} else {
+		self.kx = parseInt(self.pointer_div.style.width, 10) / H.disp_theo_width;
+		self.ky = parseInt(self.pointer_div.style.height, 10) / H.disp_theo_height;
+	}
 
 	self.microsoft = (window.navigator && window.navigator.msPointerEnabled && true);
 	
@@ -1790,9 +1821,21 @@ Hp12c_keyboard.prototype.mouse_click = function (evt)
 		evt = window.event;
 	}
 
+	self.xoff = H.disp_key_offset_x * self.kx;
+	self.yoff = H.disp_key_offset_y * self.ky;
+
+	self.xl = H.disp_key_width * self.kx;
+	self.yl = H.disp_key_height * self.ky;
+
+	self.xd = H.disp_key_dist_x * self.kx;
+	self.yd = H.disp_key_dist_y * self.ky;
+
 	var pos_x, pos_y;
 
-	if (H.touch_display) {
+	if (H.embedded) {
+		pos_x =	evt.X - self.xoff;
+		pos_y = evt.Y - self.yoff;
+	} else if (H.touch_display) {
 		evt.preventDefault();
 		if (self.microsoft) {
 			pos_x =	(evt.pageX - self.pointer_div.offsetLeft) - self.xoff;
@@ -2455,22 +2498,29 @@ Hp12c_machine.prototype.display_result_s = function (reset_window, enable_pushed
 	}
 	this.clear_typing();
 
+	var t = this.display_result_in();
+
+	if (H.type === "15c") {
+		if (t.r >= H.value_max || t.r <= -H.value_max) {
+			// make display blink
+			this.set_overflow(true);
+		}
+	}
+};
+
+Hp12c_machine.prototype.display_result_in = function ()
+{
+	var t = this.reg_tuple("x");
 	var matrix = this.matrix_in_reg("x");
 
 	if (! matrix) {
-		var t = this.reg_tuple("x");
 		H.display.displayNumber(t);
-
-		if (H.type === "15c") {
-			if (t.r >= H.value_max || t.r <= -H.value_max) {
-				// make display blink
-				this.set_overflow(true);
-			}
-		}
 	} else {
 		var size = this.matrix_size(matrix);
 		H.display.displayMatrix(matrix, size[0], size[1]);
 	}
+
+	return t;
 };
 
 Hp12c_machine.prototype.display_matrix = function (n, r, c)
@@ -2483,7 +2533,7 @@ Hp12c_machine.prototype.display_matrix = function (n, r, c)
 
 Hp12c_machine.prototype.display_all = function ()
 {
-	H.display.displayNumber(this.reg_tuple("x"));
+	this.display_result_in();
 	this.display_modifier();
 	this.display_begin();
 	this.display_dmyc();
@@ -6742,7 +6792,9 @@ for (I = 11; I <= 15; ++I) {
 	K[I][H.FF_EXCHANGE] = H.make_closure("x_exchange_matrix", [I + k], "X<->" + SI);
 
 	K[I][H.ISG] = H.make_closure("isg_matrix", [I + k], "ISG " + SI);
+	K[I][H.ISG].shrink = 2;
 	K[I][H.DSE] = H.make_closure("dse_matrix", [I + k], "DSE " + SI);
+	K[I][H.DSE].shrink = 2;
 
 	add_sgroup(SI, I + k);
 }
@@ -6857,7 +6909,9 @@ for (I = 0; I <= 9; ++I) {
 	K[I][H.ISG] = H.make_closure("isg", [I], "ISG " + SI);
 	K[I][H.DSE] = H.make_closure("dse", [I], "DSE " + SI);
 	K[I][H.ISG_DOT] = H.make_closure("isg", [I + 10], "ISG . " + SI);
+	K[I][H.ISG_DOT].shrink = 1;
 	K[I][H.DSE_DOT] = H.make_closure("dse", [I + 10], "DSE . " + SI);
+	K[I][H.DSE_DOT].shrink = 1;
 
 	K[I][0] = H.make_closure("digit_add", [I], "" + SI);
 }
@@ -7534,7 +7588,7 @@ H.asm = function (instr, query)
 
 	var map = H.asm_reverse_map;
 
-	var c12 = (H.type === "12c" || H.type === "12c-platinum");
+	var c12 = H.is_12c();
 
 	instr = H.asm_condition(instr);
 	var opcode = null;
@@ -7659,7 +7713,6 @@ H.asm_microcode_compile = function (microprogram)
 	return microcode;
 };
 /* HP-12C emulator 
-				ionsole.log("----------------------------");
  * Copyright (c) 2011 EPx.com.br.
  * All rights reserved.
  */
@@ -7669,7 +7722,7 @@ H.asm_microcode_compile = function (microprogram)
 
 "use strict";
 
-H.INTERPOLATION_MAX = 50;
+H.INTERPOLATION_MAX = 100;
 
 H.solve_infinity = function (val)
 {
@@ -7695,9 +7748,43 @@ H.npv = function (n, i, cfj, nj)
 	return res;
 };
 
+H.npv_quality = function (n, cfj, nj)
+{
+	var sgn = 0;
+
+	if (cfj[0] > 0) {
+		sgn = 1;
+	} else if (cfj[0] < 0) {
+		sgn = -1;
+	}
+	
+	for (var e = 1; e <= n; ++e) {
+		if (nj[e] !== 0) {
+			var newsgn = 0;
+			if (cfj[e] > 0) {
+				newsgn = 1;
+			} else if (cfj[e] < 0) {
+				newsgn = -1;
+			}
+			if (newsgn !== 0) {
+				if (sgn !== 0) {
+					if (newsgn !== sgn) {
+						// signal inversion, exit with sucess
+						return +1;
+					}
+				}
+				sgn = newsgn;
+			}
+		}
+	}
+
+	// no signal inversions, or all-zeros
+	return (sgn === 0) ? 0 : -1;
+};
+
 H.comppmtlim = function (i, n)
 {
-	if (Math.abs(i) < 0.00000001) {
+	if (Math.abs(i) < 0.0000000001) {
 		return n;
 	} else {
 		return (1 - Math.pow(1 + (i / 100), -n)) / (i / 100);
@@ -7809,56 +7896,81 @@ H.irr_npvsum = function (n, cfj)
 
 H.irr_calc = function (n, i, cfj, nj)
 {
-	var NPV0, NPV1, guess0, guess1;
-	var iteration = H.INTERPOLATION_MAX;
+	var quality = H.npv_quality(n, cfj, nj);
 
-	var threshold = 0.000000000125;
+	if (quality === 0) {
+		// all-zeros
+		return [-1, 0];
+	} else if (quality < 0) {
+		// all data have the same signal
+		return [H.ERROR_IRR, i];
+	}
+
+	var NPVA, NPVL, NPVH, guessL, guessH;
+	var threshold = 0.0000000000125;
 	var threshold_order = H.irr_npvsum(n, cfj);
 
 	if (threshold_order > 0) {
 		threshold *= threshold_order;
 	}
 
-	if (i <= -100 || i > 10000000000) {
+	if (i <= -98 || i > 10000000000) {
 		i = 0;
 	}
+	guessL = i - 1;
+	guessH = i + 1;
 
-	guess0 = null;
-	guess1 = i;
+	var success = false;
 
-	var ret = [H.ERROR_IRR2, i];
+	// find an interval guessL..guessH that contains NPV = 0
+	var iteration = H.INTERPOLATION_MAX;
+	while (--iteration >= 0) {
+		// console.log("Trying interval " + guessL + " " + guessH);
+		NPVH = H.npv(n, guessH, cfj, nj);
+		NPVL = H.npv(n, guessL, cfj, nj);
 
-	while (--iteration > 0) {
-		i = guess1;
-		NPV1 = H.npv(n, i, cfj, nj);
-
-		if (i < -100 || i > 10000000000) {
-			// pathological
-			ret = [H.ERROR_IRR, i];
+		// success condition
+		if ((NPVH * NPVL) < 0) {
+			success = true;
 			break;
 		}
 
-		if (Math.abs(NPV1) < threshold) {
-			// we've made it
-			ret = [-1, i];
-			break;
+		var diff = guessH - guessL;
+		if (guessL < 0) {
+			guessL = Math.max(-99.99999999, guessL * 1.5); // counting with 100 iterations
+		} else {
+			guessL = Math.max(-99.99999999, guessL - 5 * diff); // counting with 100 iterations
 		}
-
-		var new_guess = i + 1;
-
-		if (guess0 !== null) {
-			var B = (NPV1 - NPV0) / (guess1 - guess0); // B
-			new_guess = NPV0 - guess0 * B; // A
-			new_guess /= -B; // -A/B is the interpolation root
-			new_guess = H.solve_infinity(new_guess);
-		}
-
-		guess0 = guess1;
-		NPV0 = NPV1;
-		guess1 = new_guess;
-		NPV1 = null;
+		guessH = Math.min(guessH + 5 * diff, 1e99);
 	}
-	return ret;
+
+	if (success) {
+		// Now bisect to find NPV(guess) = 0
+		iteration = H.INTERPOLATION_MAX;
+		while (--iteration >= 0) {	
+			// console.log("Trying bisection " + guessL + " " + guessH);
+			var avg = (guessL + guessH) / 2;
+			NPVA = H.npv(n, avg, cfj, nj);
+	
+			if (Math.abs(NPVA) < threshold) {
+				return [-1, avg];
+			}
+	
+			if ((NPVL * NPVA) < 0) {
+				// zero between L and avg
+				NPVH = NPVA;
+				guessH = avg;
+			} else {
+				// zero between avg and H
+				NPVL = NPVA;
+				guessL = avg;
+			}
+	
+			// console.log("Interval NPV is " + NPVL + " " + NPVH);
+		}
+	}
+	
+	return [H.ERROR_IRR2, i];
 };
 
 H.financecalc = function (dependent, begin, compoundf, finarray)
@@ -7885,6 +7997,11 @@ H.financecalc = function (dependent, begin, compoundf, finarray)
 		}
 		// I am in doubt in relation to signal
 		// err = err || H.feq10(tpmt, tfvi); // PMT == VF x i
+	} else if (dependent == 1) {
+		var pmtn = finarray[H.FIN_PMT] * finarray[H.FIN_N];
+		err = err || (finarray[H.FIN_N] < 0);
+		err = err || (pmtn >= 0 && finarray[H.FIN_PV] >= 0 && finarray[H.FIN_FV] >= 0);
+		err = err || (pmtn <= 0 && finarray[H.FIN_PV] <= 0 && finarray[H.FIN_FV] <= 0);
 	} else if (dependent == 2) {
 		// PV
 		err = err || finarray[H.FIN_I] <= -100; // i <= -100
@@ -7901,10 +8018,7 @@ H.financecalc = function (dependent, begin, compoundf, finarray)
 		return H.ERROR_INTEREST;
 	}
 
-	var guess0, guess1, NPV0, NPV1;
-	var saved = finarray[dependent];
-	var iteration = H.INTERPOLATION_MAX;
-	var threshold = 0.000000000125;
+	var threshold = 0.00000000000125;
 	var threshold_order = 0;
 
 	// correct threshold so it is more "lax" when involved numbers are too big
@@ -7924,6 +8038,14 @@ H.financecalc = function (dependent, begin, compoundf, finarray)
 		threshold *= threshold_order;
 	}
 
+	if (dependent === 1) {
+		return H.financecalc_i(dependent, begin, compoundf, finarray, threshold, threshold_order);
+	}
+
+	var guess0, guess1, NPV0, NPV1;
+	var saved = finarray[dependent];
+	var iteration = H.INTERPOLATION_MAX;
+
 	guess0 = null;
 
 	if (dependent == H.FIN_N || dependent == H.FIN_I || threshold_order <= 0) {
@@ -7937,10 +8059,6 @@ H.financecalc = function (dependent, begin, compoundf, finarray)
 
 	while (--iteration >= 0) {
 		finarray[dependent] = guess1;
-
-		if (finarray[H.FIN_I] <= -100) {
-			break;
-		}
 
 		NPV1 = H.calcNPV(dependent === 0,
 				finarray[H.FIN_N], finarray[H.FIN_I], finarray[H.FIN_PV], 
@@ -7980,6 +8098,78 @@ H.financecalc = function (dependent, begin, compoundf, finarray)
 	return ret;
 };
 
+// separate routine since linear interpolation does not work well for i
+H.financecalc_i = function (dependent, begin, compoundf, finarray, threshold, threshold_order)
+{
+	var NPVA, NPVL, NPVH, guessL, guessH;
+	var saved = finarray[dependent];
+
+	var ret = H.ERROR_INTEREST;
+
+	var success = false;
+
+	guessL = -1;
+	guessH = +1;
+
+	// find an interval guessL..guessH that contains NPV = 0
+	var iteration = H.INTERPOLATION_MAX;
+	while (--iteration >= 0) {
+		// console.log("Trying interval " + guessL + " " + guessH);
+		finarray[dependent] = guessH;
+		NPVH = H.calcNPV(dependent === 0,
+				finarray[H.FIN_N], finarray[H.FIN_I], finarray[H.FIN_PV], 
+				finarray[H.FIN_PMT], finarray[H.FIN_FV], begin, compoundf);
+
+		finarray[dependent] = guessL;
+		NPVL = H.calcNPV(dependent === 0,
+				finarray[H.FIN_N], finarray[H.FIN_I], finarray[H.FIN_PV], 
+				finarray[H.FIN_PMT], finarray[H.FIN_FV], begin, compoundf);
+
+		// console.log("Interval NPV is " + NPVL + " " + NPVH);
+
+		// success condition
+		if ((NPVH * NPVL) < 0) {
+			success = true;
+			break;
+		}
+
+		guessL = Math.max(-99.99999999, guessL - 1.1); // counting with 100 iterations
+		guessH = Math.min(guessH * 10, 1e99);
+	}
+
+	if (success) {
+		// Now bisect to find NPV(guess) = 0
+		iteration = H.INTERPOLATION_MAX;
+		while (--iteration >= 0) {	
+			// console.log("Trying bisection " + guessL + " " + guessH);
+			var avg = (guessL + guessH) / 2;
+			finarray[dependent] = avg;
+			NPVA = H.calcNPV(dependent === 0,
+					finarray[H.FIN_N], finarray[H.FIN_I], finarray[H.FIN_PV], 
+					finarray[H.FIN_PMT], finarray[H.FIN_FV], begin, compoundf);
+	
+			if (Math.abs(NPVA) < threshold) {
+				return -1;
+			}
+	
+			if ((NPVL * NPVA) < 0) {
+				// zero between L and avg
+				NPVH = NPVA;
+				guessH = avg;
+			} else {
+				// zero between avg and H
+				NPVL = NPVA;
+				guessL = avg;
+			}
+	
+			// console.log("Interval NPV is " + NPVL + " " + NPVH);
+		}
+	}
+	
+	finarray[dependent] = saved;
+	return ret;
+};
+
 H.bond_yield = function (coupon_year, buy, maturity, price)
 {
 	if (buy === null) {
@@ -7994,51 +8184,84 @@ H.bond_yield = function (coupon_year, buy, maturity, price)
 		return [H.ERROR_INTEREST, 0];
 	}
 
-	var price0, price1, guess0, guess1;
-	var iteration = H.INTERPOLATION_MAX;
-
+	var NPVA, NPVL, NPVH, guessL, guessH;
 	var threshold = 0.000000000125 * Math.abs(price);
 
-	guess0 = null;
-	guess1 = 1;
+	guessL = -1;
+	guessH = +1;
 
-	var ret = [H.ERROR_INTEREST, 0];
+	var success = false;
+	var err = H.ERROR_INTEREST;
 
-	while (--iteration > 0) {
-		var res = H.bond_price(guess1, coupon_year, buy, maturity);
-		if (res[0] >= 0) {
-			ret = [res[0], 0];
+	// find an interval guessL..guessH that contains NPV = 0
+	var iteration = H.INTERPOLATION_MAX;
+	while (--iteration >= 0) {
+		// console.log("Trying interval " + guessL + " " + guessH);
+		NPVL = H.bond_price(guessL, coupon_year, buy, maturity);
+		if (NPVL[0] >= 0) {
+			err = NPVL[0];
 			break;
 		}
-		price1 = res[1] - price;
+		NPVL = NPVL[1] - price;
+		NPVH = H.bond_price(guessH, coupon_year, buy, maturity);
+		/*
+		Impossible, because all possible errors are related to date and
+		are caught in NPVL calculation.
 
-		if (guess1 < -100 || guess1 > 10000000000) {
-			// pathological
+		if (NPVH[0] >= 0) {
+			err = NPVH[0];
+			break;
+		}
+		*/
+		NPVH = NPVH[1] - price;
+
+		// success condition
+		if ((NPVH * NPVL) < 0) {
+			success = true;
 			break;
 		}
 
-		if (Math.abs(price1) < threshold) {
-			// we've made it
-			ret = [-1, guess1];
-			break;
-		}
-
-		var new_guess = guess1 + 1;
-
-		if (guess0 !== null) {
-			var B = (price1 - price0) / (guess1 - guess0); // B
-			new_guess = price0 - guess0 * B; // A
-			new_guess /= -B; // -A/B is the interpolation root
-			new_guess = H.solve_infinity(new_guess);
-		}
-
-		guess0 = guess1;
-		price0 = price1;
-		guess1 = new_guess;
-		price1 = null;
+		guessL = Math.max(-199.99999999, guessL * 1.5); // counting with 100 iterations
+		guessH = Math.min(guessH * 10, 1e99);
 	}
 
-	return ret;
+	if (success) {
+		// Now bisect to find NPV(guess) = 0
+		iteration = H.INTERPOLATION_MAX;
+		while (--iteration >= 0) {	
+			// console.log("Trying bisection " + guessL + " " + guessH);
+			var avg = (guessL + guessH) / 2;
+			NPVA = H.bond_price(avg, coupon_year, buy, maturity);
+			/*
+			Impossible, because all possible errors would have been
+			caught in previous loop, in NPVL calculation.
+
+			if (NPVA[0] >= 0) {
+				err = NPVA[0];
+				break;
+			}
+			*/
+			NPVA = NPVA[1] - price;
+	
+			if (Math.abs(NPVA) < threshold) {
+				return [-1, avg];
+			}
+	
+			if ((NPVL * NPVA) < 0) {
+				// zero between L and avg
+				NPVH = NPVA;
+				guessH = avg;
+			} else {
+				// zero between avg and H
+				NPVL = NPVA;
+				guessL = avg;
+			}
+	
+			// console.log("Interval NPV is " + NPVL + " " + NPVH);
+		}
+	}
+
+	return [err, 0];
 };
 
 H.depreciation_sl = function (cost, sell, life, year)
@@ -8236,7 +8459,7 @@ H.tanh = function (arg) {
 H.feq = function (a, b, epsilon) {
 	if (a === undefined || a === null || b === undefined || b === null ||
 					H.badnumber(a) || H.badnumber(b)) {
-		console.log("feq: bad number");
+		// console.log("feq: bad number");
 		return false;
 	}
 
@@ -8276,21 +8499,21 @@ H.arithmetic_round = function (r, a, b)
 	var r_order = Math.floor(Math.log(Math.abs(r)) / Math.log(10));
 	var order = r_order;
 
+	// pick the magnitude of biggest number in operation
 	if (a !== 0) {
 		order = Math.floor(Math.log(Math.abs(a)) / Math.log(10));
 	}
 	if (b !== 0) {
-		order = Math.min(order, Math.floor(Math.log(Math.abs(a)) / Math.log(10)));
-	}
-	if (order < -88) {
-		// too small, let it go
-		return r;
+		order = Math.max(order, Math.floor(Math.log(Math.abs(b)) / Math.log(10)));
 	}
 
-	var scale = Math.pow(10, 11 - order);
-	var r2 = Math.round(Math.abs(r) * scale) / scale * H.binary_sgn(r);
-	// console.log("" + r + " " + r2);
-	return r2;
+	var scale = Math.pow(10, order - 15);
+
+	if (Math.abs(r) < scale) {
+		r = 0;
+	}
+
+	return r;
 };
 
 H.feq10 = function (a, b) {
@@ -8441,13 +8664,13 @@ H.stddev = function (mem)
 H.linear_regression = function (mem)
 {
 	if (mem[H.STAT_N] <= 1) {
-		console.log("LR err type 1");
+		// console.log("LR err type 1");
 		return [0];
 	}
 
 	var div = mem[H.STAT_X2] - mem[H.STAT_X] * mem[H.STAT_X] / mem[H.STAT_N];
 	if (H.feq10_0(div, 0)) {
-		console.log("LR err type 2");
+		// console.log("LR err type 2");
 		return [0];
 	}
 
@@ -8473,7 +8696,7 @@ H.stat_kr = function (mem, is_x, xx)
 	var res = H.linear_regression(mem);
 
 	if (! res[0]) {
-		console.log("statkr error 1");
+		// console.log("statkr error 1");
 		return [0];
 	}
 
@@ -8494,7 +8717,7 @@ H.stat_kr = function (mem, is_x, xx)
 	var rr3 = mem[H.STAT_Y2] - mem[H.STAT_Y] * mem[H.STAT_Y] / mem[H.STAT_N];
 
 	if (H.feq10_0(rr3, 0)) {
-		console.log("statkr error 3");
+		// console.log("statkr error 3");
 		return [0];
 	}
 
@@ -8510,7 +8733,7 @@ H.stat_kr = function (mem, is_x, xx)
 	*/
 
 	if ((rr2 * rr3) < 0) {
-		console.log("statkr error 6");
+		// console.log("statkr error 6");
 		return [0];
 	}
 
@@ -8522,7 +8745,7 @@ H.stat_kr = function (mem, is_x, xx)
 
 	if (is_x) {
 		if (H.feq10_0(B, 0)) {
-			console.log("statkr error 7");
+			// console.log("statkr error 7");
 			return [0];
 		}
 		c = (xx - A) / B;
@@ -10261,9 +10484,9 @@ H.matrix_to_mem = function (m)
 	});
 	return [ma, sa];
 };
-H.sve = 29.2;
-H.kve = "b7245b16a00a80b2c94b187356bde9c9";
-H.kve2 = "c078fbb490e3ae173d1b5c5a61ba893ae0160d1e";
+H.sve = 30.5;
+H.kve = "bedebc53ca7d3f29c4872712a5a316f8";
+H.kve2 = "6a49f4df7b7d90df5ec23b9585d9b6b779b80005";
 /*jslint white: true, undef: true, nomen: true, regexp: true, strict: true, browser: true, bitwise: true */
 
 /*global H */
@@ -10564,15 +10787,15 @@ Hp12c_pgrm.prototype.p_gto = function (label)
 	}
 
 	if (is_label) {
-		window.console.log("GTO to label " + new_ip);
+		console.log("GTO to label " + new_ip);
 		new_ip = this.find_label(new_ip);
 		if (! new_ip) {
-			window.console.log("... no such label");
+			console.log("... no such label");
 			return false;
 		}
 	}
 
-	window.console.log("GTO to ip " + new_ip);
+	console.log("GTO to ip " + new_ip);
 	H.machine.ip = new_ip;
 	return true;
 };
@@ -10616,7 +10839,7 @@ Hp12c_pgrm.prototype.p_do_gosub = function (addr)
 		return;
 	}
 
-	window.console.log("GSB label " + addr + " to " + new_ip);
+	console.log("GSB label " + addr + " to " + new_ip);
 
 	this.push_stack(new_ip);
 };
@@ -10635,10 +10858,8 @@ Hp12c_pgrm.prototype.p_exec_gosub_dot = function (op)
 Hp12c_pgrm.prototype.p_exec_rtn = function (op)
 {
 	this.pop_stack();
-	window.console.log("RTN to " + H.machine.ip);
-	if (H.machine.ip <= 0) {
-		this.stop(2);
-	}
+	console.log("RTN to " + H.machine.ip);
+	// do nothing since p_execute() will stop if ip=0
 };
 
 Hp12c_pgrm.prototype.p_exec_rs = function (op)
@@ -10775,7 +10996,7 @@ Hp12c_pgrm.prototype.pop_stack = function ()
 	H.machine.call_stack.splice(H.machine.call_stack.length - 1, 1);
 
 	if (ip > H.machine.program_limit()) {
-		window.console.log("RTN to EOF, defaulting to 0");
+		console.log("RTN to EOF, defaulting to 0");
 		ip = 0;
 	}
 
@@ -10805,7 +11026,7 @@ Hp12c_pgrm.prototype.p_execute = function ()
 			this.stop(0);
 			return;
 		} else {
-			window.console.log("implicit RTN to " + H.machine.ip);
+			console.log("implicit RTN to " + H.machine.ip);
 		}
 	}
 
@@ -10818,7 +11039,7 @@ Hp12c_pgrm.prototype.p_execute = function ()
 	var op_txt = H.machine.ram[H.machine.ip];
 
 	// should never happen; tested by error injection in stack
-	if (H.type !== "12c" && H.type !== "12c-platinum") {
+	if (! H.is_12c()) {
 		if (op_txt == H.STOP_INSTRUCTION || op_txt === "") {
 			// bumped soft end of program (GTO 00)
 			H.machine.ip = 0;
@@ -10848,7 +11069,7 @@ Hp12c_pgrm.prototype.p_execute = function ()
 
 		for (e = 0; e < op.length; ++e) {
 			if (!H.dispatcher.dispatch_common(op[e], true)) {
-				window.console.log("Invalid opcode for exec: " + op_txt);
+				console.log("Invalid opcode for exec: " + op_txt);
 			}
 		}
 
@@ -10865,12 +11086,12 @@ Hp12c_pgrm.prototype.p_execute = function ()
 			log += ":M";
 		}
 	}
-	window.console.log(log);
+	console.log(log);
 
 	// instruction execution aftermath
 
 	if (H.machine.ip <= 0) {
-		// GTO 00 or equivalent
+		// GTO 00, RTN to empty, or equivalent
 		this.stop(0);
 	} else if (H.machine.program_mode === H.RUNNING_STEP) {
 		H.machine.program_mode = H.INTERACTIVE;
@@ -10923,7 +11144,7 @@ Hp12c_pgrm.prototype.p_type_pr = function (key)
 	// P/R in prog. mode exits programming mode
 	H.machine.rst_modifier(1);
 	H.machine.program_mode = H.INTERACTIVE;
-	if (H.type === "12c" || H.type === "12c-platinum") {
+	if (H.is_12c()) {
 		H.machine.ip = 0;
 	}
 	H.machine.display_pgrm();
@@ -11075,7 +11296,7 @@ Hp12c_pgrm.prototype.p_type_gto_move_begin = function (key)
 Hp12c_pgrm.prototype.p_type_gto_begin = function (key)
 {
 	H.machine.set_modifier(H.GTO, 1);
-	if (H.type === "12c" || H.type === "12c-platinum") {
+	if (H.is_12c()) {
 		H.machine.gtoxx = "";
 	}
 	H.machine.display_program_opcode();
@@ -11123,7 +11344,7 @@ Hp12c_pgrm.prototype.type = function (key)
 	var f = H.dispatcher.find_function(key, 1, 0);
 
 	if (! f) {
-		window.console.log("pgrm typing: no handler for " + key);
+		console.log("pgrm typing: no handler for " + key);
 		H.machine.rst_modifier(1);
 		H.machine.display_program_opcode();
 		return false;
@@ -11139,6 +11360,10 @@ Hp12c_pgrm.prototype.stop = function (motive)
 {
 	H.machine.program_mode = H.INTERACTIVE;
 	if (H.machine.ip > H.machine.program_limit()) {
+		H.machine.ip = 0;
+	}
+	if (H.is_12c() && H.machine.error_in_display) {
+		// in 12c, an error resets IP
 		H.machine.ip = 0;
 	}
 	H.machine.display_pgrm();
@@ -11195,7 +11420,7 @@ Hp12c_pgrm.prototype.gto = function (label)
 
 Hp12c_pgrm.prototype.label = function (label)
 {
-	window.console.log("LBL #" + label);
+	console.log("LBL #" + label);
 };
 
 Hp12c_pgrm.prototype.gosub = function (label)
@@ -11236,7 +11461,7 @@ Hp12c_pgrm.prototype.user = function (label)
 	this.clean_stack();
 	H.machine.ip = new_ip;
 
-	window.console.log("USER: exec from ip " + H.machine.ip);
+	console.log("USER: exec from ip " + H.machine.ip);
 
 	this.p_run();
 };
@@ -11295,7 +11520,7 @@ Hp12c_pgrm.prototype.disassemble = function (opcode)
 		this.generate_dis_table();
 	}
 
-	if (H.type === "12c" || H.type === "12c-platinum") {
+	if (H.is_12c()) {
 		if (opcode.substr(0, 6) === "43.33.") {
 			return "GTO " + opcode.substr(6);
 		}
@@ -11570,7 +11795,7 @@ Hp12c_storage.prototype.recover_memory2 = function (target, sserial)
 		}
 	}
 
-	if (H.type === "12c" || H.type === "12c-platinum") {
+	if (H.is_12c()) {
 		return;
 	}
 
